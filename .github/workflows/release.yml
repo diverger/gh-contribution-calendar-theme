@@ -1,11 +1,6 @@
 name: Release Action
 
 on:
-  push:
-    tags:
-      - 'v*.*.*'  # v1.0.0, v2.1.3, etc.
-      - 'v*.*'    # v1.0, v2.1, etc.
-      - 'v*'      # v1, v2, etc.
   workflow_dispatch:
     inputs:
       version:
@@ -34,16 +29,10 @@ jobs:
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      - name: Extract version from tag or input
+      - name: Extract version from input
         id: version
         run: |
-          if [ "${{ github.event_name }}" = "push" ]; then
-            # Triggered by tag push
-            VERSION=${GITHUB_REF#refs/tags/}
-          else
-            # Triggered manually
-            VERSION="${{ inputs.version }}"
-          fi
+          VERSION="${{ inputs.version }}"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
 
@@ -100,7 +89,7 @@ jobs:
           echo "Updated action.yml:"
           cat action.yml
 
-      - name: Commit updated action.yml
+      - name: Commit updated action.yml and update all version tags
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
@@ -110,17 +99,37 @@ jobs:
           if ! git diff --quiet --cached; then
             git commit -m "chore: update action.yml with image digest for ${{ steps.version.outputs.version }}"
 
-            # Update the tag to point to the new commit
-            git tag -fa ${{ steps.version.outputs.version }} -m "Release ${{ steps.version.outputs.version }} with updated action.yml"
-            git push origin ${{ steps.version.outputs.version }} --force
+            VERSION=${{ steps.version.outputs.version }}
 
-            echo "Updated and pushed tag ${{ steps.version.outputs.version }} with new action.yml"
+            # Update the patch version tag to point to the new commit
+            git tag -fa $VERSION -m "Release $VERSION with updated action.yml"
+            git push origin $VERSION --force
+
+            echo "Updated and pushed tag $VERSION with new action.yml"
+
+            # Only update major/minor tags for full semver (v1.0.0 format)
+            if [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
+              MAJOR_VERSION=$(echo $VERSION | cut -d. -f1)
+              MINOR_VERSION=$(echo $VERSION | cut -d. -f1-2)
+
+              # Update major version tag (e.g., v1 for v1.0.0)
+              git tag -fa $MAJOR_VERSION -m "Update $MAJOR_VERSION tag to $VERSION"
+              git push origin $MAJOR_VERSION --force
+              echo "Updated tag: $MAJOR_VERSION -> $VERSION"
+
+              # Update minor version tag (e.g., v1.0 for v1.0.0)
+              git tag -fa $MINOR_VERSION -m "Update $MINOR_VERSION tag to $VERSION"
+              git push origin $MINOR_VERSION --force
+              echo "Updated tag: $MINOR_VERSION -> $VERSION"
+            else
+              echo "Skipping major/minor tag update for non-semver tag: $VERSION"
+            fi
           else
             echo "No changes to action.yml"
           fi
 
       - name: Generate release notes
-        if: github.event_name == 'push' || inputs.create_release == true
+        if: inputs.create_release == true
         id: release_notes
         run: |
           cat > release_notes.md << 'EOF'
@@ -155,7 +164,7 @@ jobs:
           EOF
 
       - name: Create Release with Auto-generated Notes
-        if: github.event_name == 'push' || inputs.create_release == true
+        if: inputs.create_release == true
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.version.outputs.version }}
@@ -166,26 +175,3 @@ jobs:
           prerelease: false
           allowUpdates: true
           token: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Update version tags
-        if: github.event_name == 'push'
-        run: |
-          VERSION=${{ steps.version.outputs.version }}
-
-          # Only update major/minor tags for full semver (v1.0.0 format)
-          if [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-            MAJOR_VERSION=$(echo $VERSION | cut -d. -f1)
-            MINOR_VERSION=$(echo $VERSION | cut -d. -f1-2)
-
-            # Update major version tag (e.g., v1 for v1.0.0)
-            git tag -fa $MAJOR_VERSION -m "Update $MAJOR_VERSION tag to ${{ steps.version.outputs.version }}"
-            git push origin $MAJOR_VERSION --force
-
-            # Update minor version tag (e.g., v1.0 for v1.0.0)
-            git tag -fa $MINOR_VERSION -m "Update $MINOR_VERSION tag to ${{ steps.version.outputs.version }}"
-            git push origin $MINOR_VERSION --force
-
-            echo "Updated tags: $MAJOR_VERSION, $MINOR_VERSION"
-          else
-            echo "Skipping major/minor tag update for non-semver tag: $VERSION"
-          fi
