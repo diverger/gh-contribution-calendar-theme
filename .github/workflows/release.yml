@@ -107,6 +107,9 @@ jobs:
           if ! git diff --quiet --cached; then
             git commit -m "chore: update action.yml with image digest for ${{ steps.version.outputs.version }}"
 
+            # Push the commit to current branch
+            git push origin HEAD:${{ github.ref }}
+
             VERSION=${{ steps.version.outputs.version }}
 
             # Update the patch version tag
