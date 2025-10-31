@@ -1,6 +1,6 @@
 #!/usr/bin/env bun
 
-const puppeteer = require('puppeteer');
+const puppeteer = require('puppeteer-core');
 
 async function detectGitHubHoliday(username) {
   console.log(`Detecting holiday theme for GitHub user: ${username}`);
@@ -8,31 +8,48 @@ async function detectGitHubHoliday(username) {
 
   let browser;
   try {
-    // Launch the browser
+    // Launch the browser with optimized settings
     browser = await puppeteer.launch({
       headless: true,
       args: [
         '--no-sandbox',
         '--disable-setuid-sandbox',
         '--disable-dev-shm-usage',
-        '--disable-gpu'
+        '--disable-gpu',
+        '--disable-software-rasterizer',
+        '--disable-extensions',
+        '--disable-background-networking',
+        '--disable-background-timer-throttling',
+        '--disable-backgrounding-occluded-windows',
+        '--disable-breakpad',
+        '--disable-component-extensions-with-background-pages',
+        '--disable-features=TranslateUI',
+        '--disable-ipc-flooding-protection',
+        '--disable-renderer-backgrounding',
+        '--enable-features=NetworkService,NetworkServiceInProcess',
+        '--force-color-profile=srgb',
+        '--hide-scrollbars',
+        '--metrics-recording-only',
+        '--mute-audio',
+        '--no-first-run',
+        '--disable-blink-features=AutomationControlled'
       ]
     });
 
     const page = await browser.newPage();
 
-    // Set viewport and user agent
-    await page.setViewport({ width: 1920, height: 1080 });
+    // Set minimal viewport and user agent
+    await page.setViewport({ width: 1280, height: 720 });
     await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36');
 
     const url = `https://github.com/${username}`;
     console.log(`\n=== Method 1: CSS Variable Detection ===`);
     console.log(`Fetching rendered page from ${url}...`);
 
-    // Navigate to the page and wait for it to fully load
+    // Navigate to the page with optimized wait condition
     await page.goto(url, {
-      waitUntil: 'networkidle2',
-      timeout: 30000
+      waitUntil: 'domcontentloaded',
+      timeout: 20000
     });
 
     // Wait for the contribution graph to load
@@ -238,7 +255,7 @@ function createResult(theme, method, lightGridColors = null, darkGridColors = nu
   return result;
 }// Main function
 async function main() {
-  const username = process.env.GITHUB_USERNAME || process.argv[2] || 'diverger';
+  const username = process.env.GITHUB_USERNAME || process.argv[2] || 'octocat';
   const result = await detectGitHubHoliday(username);
 
   // Output in GitHub Actions format
