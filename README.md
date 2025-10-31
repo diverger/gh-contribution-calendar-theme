@@ -11,6 +11,8 @@ GitHub changes the contribution calendar colors during special holidays — exam
 
 This action helps you detect which theme is active and get the exact color values.
 
+> **⚠️ Important Note**: This action detects themes in **unauthenticated (anonymous) mode**, which reflects GitHub's display based on **UTC timezone**. Logged-in users may see different themes based on their account timezone settings. For example, on October 31st at 8 PM UTC, anonymous users see the Halloween theme, but users in UTC+8 (November 1st) may already see the default theme.
+
 ## Features
 
 - 🎨 Extracts actual color values from GitHub's contribution calendar
@@ -110,9 +112,16 @@ jobs:
 
 ### Timezone Configuration
 
-GitHub displays holiday themes based on the user's **local timezone**. To get accurate results, specify your timezone:
+> **Note**: The `timezone` parameter is currently **not functional** for theme detection because GitHub determines holiday themes server-side for unauthenticated users based on UTC time. This parameter is reserved for potential future features or authenticated detection modes.
 
-**Using IANA timezone format:**
+GitHub displays holiday themes based on the user's **local timezone** when logged in, but this action detects themes in **anonymous mode**, which uses GitHub's server time (UTC). To understand what theme will be detected:
+
+**Current behavior:**
+- Detection always uses **UTC timezone** (server-side rendering)
+- Timezone parameter does not affect detection results
+- Results reflect what anonymous/logged-out users see
+
+**Using IANA timezone format (for future compatibility):**
 ```yaml
 - uses: YOUR-USERNAME/gh-contribution-calendar-theme@v1
   with:

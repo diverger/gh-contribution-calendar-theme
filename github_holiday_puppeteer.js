@@ -64,9 +64,21 @@ async function detectGitHubHoliday(username, timezone = 'UTC') {
 
   let browser;
   try {
+    // Determine browser executable path based on platform
+    let executablePath = process.env.PUPPETEER_EXECUTABLE_PATH;
+    if (!executablePath) {
+      if (process.platform === 'win32') {
+        // Try Edge on Windows
+        executablePath = 'C:\\Program Files (x86)\\Microsoft\\Edge\\Application\\msedge.exe';
+      } else {
+        // Linux/Mac
+        executablePath = '/usr/bin/chromium-browser';
+      }
+    }
+
     // Launch the browser with optimized settings
     browser = await puppeteer.launch({
-      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
+      executablePath: executablePath,
       headless: true,
       args: [
         '--no-sandbox',
