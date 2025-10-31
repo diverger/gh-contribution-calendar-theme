@@ -73,7 +73,14 @@ jobs:
           # Extract the sha256 digest from the build output
           DIGEST="${{ steps.build.outputs.digest }}"
           echo "value=$DIGEST" >> $GITHUB_OUTPUT
-          echo "Image digest: $DIGEST"
+          echo "=== Image Digest Extracted ==="
+          echo "Digest: $DIGEST"
+
+          # Verify it was saved
+          if [ -z "$DIGEST" ]; then
+            echo "ERROR: Digest is empty!"
+            exit 1
+          fi
 
       - name: Update action.yml with image digest
         run: |
@@ -81,22 +88,37 @@ jobs:
           IMAGE_NAME="${{ steps.repo.outputs.name }}"
           IMAGE_REF="docker://docker.io/${IMAGE_NAME}@${DIGEST}"
 
-          echo "Updating action.yml with image: ${IMAGE_REF}"
+          echo "=== Before Update ==="
+          cat action.yml | grep -A 2 "image:"
 
-          # Update the image line in action.yml (more precise pattern)
-          sed -i "/^  image:/c\  image: '${IMAGE_REF}'" action.yml
+          echo ""
+          echo "=== Updating with: ${IMAGE_REF} ==="
 
-          echo "Updated action.yml:"
-          cat action.yml
+          # Update the image line in action.yml
+          sed -i "s|^  image:.*|  image: '${IMAGE_REF}'|" action.yml
+
+          echo ""
+          echo "=== After Update ==="
+          cat action.yml | grep -A 2 "image:"
 
       - name: Commit updated action.yml and update all version tags
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
+
+          echo "=== Git Status Before Add ==="
+          git status
+
           git add action.yml
+
+          echo ""
+          echo "=== Git Diff Staged ==="
+          git diff --staged
 
           # Check if there are changes to commit
           if ! git diff --quiet --cached; then
+            echo ""
+            echo "=== Changes detected, committing... ==="
             git commit -m "chore: update action.yml with image digest for ${{ steps.version.outputs.version }}"
 
             VERSION=${{ steps.version.outputs.version }}
@@ -125,7 +147,10 @@ jobs:
               echo "Skipping major/minor tag update for non-semver tag: $VERSION"
             fi
           else
-            echo "No changes to action.yml"
+            echo ""
+            echo "=== ERROR: No changes to action.yml detected! ==="
+            echo "This means the sed command didn't work!"
+            exit 1
           fi
 
       - name: Generate release notes
