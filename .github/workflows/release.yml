@@ -12,6 +12,9 @@ on:
         required: false
         type: boolean
         default: true
+      description:
+        description: "Release description"
+        type: string
 
 permissions:
   contents: write
@@ -33,14 +36,14 @@ jobs:
         id: version
         run: |
           INPUT_VERSION="${{ inputs.version }}"
-          
+
           # Add 'v' prefix if not present
           if [[ "$INPUT_VERSION" =~ ^v ]]; then
             VERSION="$INPUT_VERSION"
           else
             VERSION="v$INPUT_VERSION"
           fi
-          
+
           echo "Input version: $INPUT_VERSION"
           echo "Final version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
@@ -104,8 +107,8 @@ jobs:
           echo ""
           echo "=== Updating with: ${IMAGE_REF} ==="
 
-          # Update the image line in action.yml
-          sed -i "s|^  image:.*|  image: '${IMAGE_REF}'|" action.yml
+          # Update the image line in action.yml (match any amount of leading whitespace)
+          sed -i "s|^[[:space:]]*image:.*|  image: '${IMAGE_REF}'|" action.yml
 
           echo ""
           echo "=== After Update ==="
@@ -182,50 +185,10 @@ jobs:
             exit 1
           fi
 
-      - name: Generate release notes
-        if: inputs.create_release == true
-        id: release_notes
-        run: |
-          cat > release_notes.md << 'EOF'
-          ## 🎨 GitHub Contribution Calendar Theme Detector
-
-          ### Docker Image
-
-          ```
-          docker.io/${{ steps.repo.outputs.name }}@${{ steps.digest.value }}
-          ```
-
-          ### What's Changed
-
-          - Docker image published to Docker Hub
-          - Image digest: `${{ steps.digest.value }}`
-          - Image tags:
-            - `docker.io/${{ steps.repo.outputs.name }}:${{ steps.version.outputs.version_number }}`
-            - `docker.io/${{ steps.repo.outputs.name }}:latest`
-
-          ### Usage
-
-          ```yaml
-          - uses: ${{ github.repository }}@${{ steps.version.outputs.version }}
-            with:
-              github-username: octocat
-          ```
-
-          **Available Version Tags:**
-          - `v${{ steps.version.outputs.version_number }}` (patch version - specific release)
-          - `v1.0` (minor version - latest patch in minor)
-          - `v1` (major version - latest release in major)
-          EOF
-
       - name: Create Release with Auto-generated Notes
         if: inputs.create_release == true
         uses: ncipollo/release-action@v1
         with:
           tag: ${{ steps.version.outputs.version }}
-          name: Release ${{ steps.version.outputs.version }}
-          bodyFile: release_notes.md
+          body: ${{ github.event.inputs.description }}
           generateReleaseNotes: true
-          draft: false
-          prerelease: false
-          allowUpdates: true
-          token: ${{ secrets.GITHUB_TOKEN }}
