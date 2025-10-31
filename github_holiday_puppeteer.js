@@ -166,59 +166,20 @@ async function detectGitHubHoliday(username) {
         console.log(`    Level ${level}: ${color} (${variable})`);
       });
       return createResult('default', 'css-variable', holidayData.lightColors, holidayData.darkColors);
-    }    // Fallback to date-based detection
-    console.log(`\n=== Method 3: Date-based holiday detection ===`);
-    const dateTheme = checkHolidayByDate();
-    if (dateTheme) {
-      console.log(`✓ Current date matches ${dateTheme} period`);
-      return createResult(dateTheme, 'date');
     }
 
-    // Default theme
+    // No holiday theme detected
     console.log('\n✗ No holiday theme detected');
     return createResult('default', 'none');
 
   } catch (error) {
     console.error(`Puppeteer extraction failed: ${error.message}`);
-    // Fallback to date detection
-    console.log('\n=== Fallback: Date-based detection ===');
-    const dateTheme = checkHolidayByDate();
-    if (dateTheme) {
-      console.log(`✓ Date fallback: ${dateTheme}`);
-      return createResult(dateTheme, 'date-fallback');
-    }
     return createResult('default', 'error');
   } finally {
     if (browser) {
       await browser.close();
     }
   }
-}
-
-function checkHolidayByDate() {
-  const now = new Date();
-  const month = now.getMonth() + 1;
-  const day = now.getDate();
-
-  const holidays = {
-    halloween: { start: [10, 25], end: [11, 1] },
-    christmas: { start: [12, 1], end: [12, 31] },
-    lunar_new_year: { start: [1, 20], end: [2, 20] },
-    valentines: { start: [2, 10], end: [2, 14] },
-    pride: { start: [6, 1], end: [6, 30] }
-  };
-
-  for (const [holiday, range] of Object.entries(holidays)) {
-    const [startM, startD] = range.start;
-    const [endM, endD] = range.end;
-
-    if (month === startM && day >= startD ||
-        month === endM && day <= endD ||
-        (month > startM && month < endM)) {
-      return holiday;
-    }
-  }
-  return null;
 }
 
 function createResult(theme, method, lightGridColors = null, darkGridColors = null) {

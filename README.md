@@ -9,7 +9,6 @@ GitHub changes the contribution calendar colors during special holidays (Hallowe
 - 🎨 Extracts actual color values from GitHub's contribution calendar
 - 🌓 Supports both light and dark theme colors
 - 🎃 Detects holiday themes (Halloween, Christmas, Lunar New Year, Valentine's, Pride)
-- 🔄 Multiple detection methods (CSS variables + date-based fallback)
 - ⚡ Fast execution using Bun runtime
 - � **Docker-based** - Pre-built image for instant execution (no setup time!)
 - �📊 Returns colors as both arrays and simple palettes
