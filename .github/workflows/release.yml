@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to release (e.g., v1.0.0)'
+        description: 'Version to release (e.g., 1.0.0 or v1.0.0)'
         required: true
         type: string
       create_release:
@@ -32,7 +32,17 @@ jobs:
       - name: Extract version from input
         id: version
         run: |
-          VERSION="${{ inputs.version }}"
+          INPUT_VERSION="${{ inputs.version }}"
+          
+          # Add 'v' prefix if not present
+          if [[ "$INPUT_VERSION" =~ ^v ]]; then
+            VERSION="$INPUT_VERSION"
+          else
+            VERSION="v$INPUT_VERSION"
+          fi
+          
+          echo "Input version: $INPUT_VERSION"
+          echo "Final version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
 
