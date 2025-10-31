@@ -1,0 +1,37 @@
+name: 'GitHub Contribution Calendar Theme Detector'
+description: 'Detects the current GitHub contribution calendar theme and extracts color palettes for both light and dark modes'
+author: 'Your Name'
+
+branding:
+  icon: 'calendar'
+  color: 'green'
+
+inputs:
+  github-username:
+    description: 'GitHub username to check for contribution calendar theme'
+    required: false
+    default: ${{ github.repository_owner }}
+
+outputs:
+  holiday_detected:
+    description: 'Whether a holiday theme is currently active (true/false)'
+  theme_name:
+    description: 'Name of the detected theme (e.g., halloween, christmas, default)'
+  detection_method:
+    description: 'Method used to detect the theme (css-variable, date, etc.)'
+  light_color_palette:
+    description: 'Comma-separated list of colors for light theme'
+  dark_color_palette:
+    description: 'Comma-separated list of colors for dark theme'
+  light_grid_colors:
+    description: 'JSON array of light theme grid colors with levels'
+  dark_grid_colors:
+    description: 'JSON array of dark theme grid colors with levels'
+
+runs:
+  using: 'docker'
+  # Image will be updated to use SHA digest during release process
+  # Format: docker://ghcr.io/OWNER/REPO@sha256:xxxxx
+  image: 'Dockerfile'
+  env:
+    GITHUB_USERNAME: ${{ inputs.github-username }}

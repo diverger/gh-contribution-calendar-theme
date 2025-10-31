@@ -1,0 +1,125 @@
+name: Release Action
+
+on:
+  push:
+    tags:
+      - 'v*'
+
+permissions:
+  contents: write
+  packages: write
+
+jobs:
+  build-and-release:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Extract version from tag
+        id: version
+        run: |
+          VERSION=${GITHUB_REF#refs/tags/}
+          echo "version=$VERSION" >> $GITHUB_OUTPUT
+          echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Extract metadata for Docker
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ghcr.io/${{ github.repository }}
+          tags: |
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=semver,pattern={{major}}
+            type=sha,format=long
+
+      - name: Build and push Docker image
+        id: build
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+      - name: Get image digest
+        id: digest
+        run: |
+          # Extract the sha256 digest from the build output
+          DIGEST="${{ steps.build.outputs.digest }}"
+          echo "value=$DIGEST" >> $GITHUB_OUTPUT
+          echo "Image digest: $DIGEST"
+
+      - name: Update action.yml with image digest
+        run: |
+          DIGEST="${{ steps.digest.value }}"
+          REPO_LOWER=$(echo "${{ github.repository }}" | tr '[:upper:]' '[:lower:]')
+          IMAGE_REF="docker://ghcr.io/${REPO_LOWER}@${DIGEST}"
+          
+          # Update action.yml
+          sed -i "s|image:.*|image: '${IMAGE_REF}'|g" action.yml
+          
+          echo "Updated action.yml with image: ${IMAGE_REF}"
+          cat action.yml
+
+      - name: Commit updated action.yml
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add action.yml
+          git diff --quiet && git diff --staged --quiet || git commit -m "chore: update action.yml with image digest for ${{ steps.version.outputs.version }}"
+          git push origin HEAD:refs/heads/release-${{ steps.version.outputs.version }}
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ steps.version.outputs.version }}
+          release_name: Release ${{ steps.version.outputs.version }}
+          body: |
+            ## 🎨 GitHub Contribution Calendar Theme Detector ${{ steps.version.outputs.version }}
+            
+            ### Docker Image
+            
+            ```
+            ghcr.io/${{ github.repository }}@${{ steps.digest.value }}
+            ```
+            
+            ### What's Changed
+            
+            - Docker image published to GitHub Container Registry
+            - Image digest: `${{ steps.digest.value }}`
+            - Image tags: 
+              - `ghcr.io/${{ github.repository }}:${{ steps.version.outputs.version_number }}`
+              - `ghcr.io/${{ github.repository }}:latest`
+            
+            ### Usage
+            
+            ```yaml
+            - uses: ${{ github.repository }}@${{ steps.version.outputs.version }}
+              with:
+                github-username: octocat
+            ```
+            
+            ### Full Changelog
+            
+            See commits since last release.
+          draft: false
+          prerelease: false
+
+      - name: Update major version tag
+        run: |
+          VERSION=${{ steps.version.outputs.version }}
+          MAJOR_VERSION=$(echo $VERSION | cut -d. -f1)
+          
+          git tag -fa $MAJOR_VERSION -m "Update $MAJOR_VERSION tag"
+          git push origin $MAJOR_VERSION --force

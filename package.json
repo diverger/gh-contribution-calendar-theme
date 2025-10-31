@@ -1,0 +1,20 @@
+{
+  "name": "gh-contribution-calendar-theme",
+  "version": "1.0.0",
+  "description": "GitHub Action to detect contribution calendar theme and extract color palettes",
+  "main": "github_holiday_puppeteer.js",
+  "scripts": {
+    "test": "bun github_holiday_puppeteer.js"
+  },
+  "keywords": [
+    "github",
+    "contribution-calendar",
+    "theme",
+    "colors",
+    "github-actions"
+  ],
+  "author": "",
+  "dependencies": {
+    "puppeteer": "^22.0.0"
+  }
+}

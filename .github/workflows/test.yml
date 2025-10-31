@@ -1,0 +1,45 @@
+name: Test Action
+
+on:
+  push:
+    branches: [ main, master ]
+  pull_request:
+    branches: [ main, master ]
+  workflow_dispatch:
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Test the action
+        id: test
+        uses: ./
+        with:
+          github-username: octocat
+
+      - name: Display results
+        run: |
+          echo "### 🎨 GitHub Theme Detection Results" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "| Property | Value |" >> $GITHUB_STEP_SUMMARY
+          echo "|----------|-------|" >> $GITHUB_STEP_SUMMARY
+          echo "| Holiday Detected | ${{ steps.test.outputs.holiday_detected }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Theme Name | ${{ steps.test.outputs.theme_name }} |" >> $GITHUB_STEP_SUMMARY
+          echo "| Detection Method | ${{ steps.test.outputs.detection_method }} |" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Light Theme Colors" >> $GITHUB_STEP_SUMMARY
+          echo "\`${{ steps.test.outputs.light_color_palette }}\`" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "#### Dark Theme Colors" >> $GITHUB_STEP_SUMMARY
+          echo "\`${{ steps.test.outputs.dark_color_palette }}\`" >> $GITHUB_STEP_SUMMARY
+
+      - name: Verify outputs exist
+        run: |
+          if [ -z "${{ steps.test.outputs.theme_name }}" ]; then
+            echo "Error: theme_name output is empty"
+            exit 1
+          fi
+          echo "✓ All outputs are present"
