@@ -2,16 +2,16 @@
 
 A GitHub Action that detects the current GitHub contribution calendar theme and extracts the color palettes for both light and dark modes.
 
-GitHub changes the contribution calendar colors during special holidays (Halloween 🎃, Christmas 🎄, Lunar New Year 🧧, Valentine's Day 💝, etc.). This action helps you detect which theme is active and get the exact color values.
+GitHub changes the contribution calendar colors during special holidays (Halloween 馃巸, Christmas 馃巹, Lunar New Year 馃Ё, Valentine's Day 馃挐, etc.). This action helps you detect which theme is active and get the exact color values.
 
 ## Features
 
-- 🎨 Extracts actual color values from GitHub's contribution calendar
-- 🌓 Supports both light and dark theme colors
-- 🎃 Detects holiday themes (Halloween, Christmas, Lunar New Year, Valentine's, Pride)
-- ⚡ Fast execution using Bun runtime
-- � **Docker-based** - Pre-built image for instant execution (no setup time!)
-- �📊 Returns colors as both arrays and simple palettes
+- 馃帹 Extracts actual color values from GitHub's contribution calendar
+- 馃寭 Supports both light and dark theme colors
+- 馃巸 Detects holiday themes (Halloween, Christmas, Lunar New Year, Valentine's, Pride)
+- 鈿� Fast execution using Bun runtime
+- 锟� **Docker-based** - Pre-built image for instant execution (no setup time!)
+- 锟金煋� Returns colors as both arrays and simple palettes
 
 ## Usage
 
@@ -38,7 +38,6 @@ jobs:
         run: |
           echo "Holiday detected: ${{ steps.theme.outputs.holiday_detected }}"
           echo "Theme name: ${{ steps.theme.outputs.theme_name }}"
-          echo "Detection method: ${{ steps.theme.outputs.detection_method }}"
           echo "Light colors: ${{ steps.theme.outputs.light_color_palette }}"
           echo "Dark colors: ${{ steps.theme.outputs.dark_color_palette }}"
 ```
@@ -107,7 +106,6 @@ jobs:
 |--------|-------------|---------|
 | `holiday_detected` | Whether a holiday theme is active | `true` or `false` |
 | `theme_name` | Name of the detected theme | `halloween`, `christmas`, `default` |
-| `detection_method` | Method used to detect the theme | `css-variable`, `date`, `none` |
 | `light_color_palette` | Comma-separated light theme colors | `#ebedf0, #9be9a8, #40c463, #30a14e, #216e39` |
 | `dark_color_palette` | Comma-separated dark theme colors | `#161b22, #0e4429, #006d32, #26a641, #39d353` |
 | `light_grid_colors` | JSON array with level/color pairs for light theme | `[{"level":0,"color":"#ebedf0"}]` |

@@ -17,8 +17,6 @@ outputs:
     description: 'Whether a holiday theme is currently active (true/false)'
   theme_name:
     description: 'Name of the detected theme (e.g., halloween, christmas, default)'
-  detection_method:
-    description: 'Method used to detect the theme (css-variable, date, etc.)'
   light_color_palette:
     description: 'Comma-separated list of colors for light theme'
   dark_color_palette:
