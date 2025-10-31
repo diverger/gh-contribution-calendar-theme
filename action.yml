@@ -34,7 +34,7 @@ runs:
   using: 'docker'
   # Image will be updated to use SHA digest during release process
   # Format: docker://ghcr.io/OWNER/REPO@sha256:xxxxx
-  image: 'docker://ghcr.io/diverger/gh-contribution-calendar-theme@sha256:2e059eed2731b3c72e95227884d23a0526b2c370d67798d3a5835ce818696148'
+  image: 'docker://ghcr.io/diverger/gh-contribution-calendar-theme@sha256:8978ecdae9edd227307f9ad82d68e94ce57c06bdebd78de5da4ca1985ee0f584'
   env:
     GITHUB_USERNAME: ${{ inputs.github-username }}
     TIMEZONE: ${{ inputs.timezone }}
