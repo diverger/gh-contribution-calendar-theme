@@ -92,10 +92,12 @@ jobs:
           IMAGE_NAME="${{ steps.repo.outputs.name }}"
           IMAGE_REF="docker://docker.io/${IMAGE_NAME}@${DIGEST}"
 
-          # Update action.yml
-          sed -i "s|image:.*|image: '${IMAGE_REF}'|g" action.yml
-
-          echo "Updated action.yml with image: ${IMAGE_REF}"
+          echo "Updating action.yml with image: ${IMAGE_REF}"
+          
+          # Update the image line in action.yml (more precise pattern)
+          sed -i "/^  image:/c\  image: '${IMAGE_REF}'" action.yml
+          
+          echo "Updated action.yml:"
           cat action.yml
 
       - name: Commit updated action.yml

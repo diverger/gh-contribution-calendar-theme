@@ -1,6 +1,6 @@
 name: 'GitHub Contribution Calendar Theme Detector'
 description: 'Detects the current GitHub contribution calendar theme and extracts color palettes for both light and dark modes'
-author: 'Your Name'
+author: 'diverger'
 
 branding:
   icon: 'calendar'
