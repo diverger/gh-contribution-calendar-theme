@@ -106,6 +106,49 @@ jobs:
 | Input | Description | Required | Default |
 |-------|-------------|----------|---------|
 | `github-username` | GitHub username to check for contribution calendar theme | No | Repository owner |
+| `timezone` | Timezone for holiday detection. Supports IANA format (e.g., `America/New_York`, `Asia/Shanghai`) or simple aliases (e.g., `china`, `tokyo`, `london`, `est`, `pst`). See [IANA timezones](https://en.wikipedia.org/wiki/List_of_tz_database_time_zones) for all valid values. | No | `UTC` |
+
+### Timezone Configuration
+
+GitHub displays holiday themes based on the user's **local timezone**. To get accurate results, specify your timezone:
+
+**Using IANA timezone format:**
+```yaml
+- uses: YOUR-USERNAME/gh-contribution-calendar-theme@v1
+  with:
+    github-username: octocat
+    timezone: 'Asia/Shanghai'  # China (Beijing Time)
+```
+
+**Using simple aliases (case-insensitive):**
+```yaml
+- uses: YOUR-USERNAME/gh-contribution-calendar-theme@v1
+  with:
+    timezone: 'china'      # → Asia/Shanghai
+    # Other aliases: tokyo, london, paris, berlin, moscow
+    # US: est, cst, mst, pst, eastern, central, mountain, pacific
+```
+
+**Supported timezone aliases:**
+
+| Alias | Resolved To | Region |
+|-------|-------------|--------|
+| `china`, `beijing`, `shanghai` | `Asia/Shanghai` | China |
+| `tokyo` | `Asia/Tokyo` | Japan |
+| `seoul` | `Asia/Seoul` | South Korea |
+| `hongkong` | `Asia/Hong_Kong` | Hong Kong |
+| `singapore` | `Asia/Singapore` | Singapore |
+| `dubai` | `Asia/Dubai` | UAE |
+| `london` | `Europe/London` | UK |
+| `paris` | `Europe/Paris` | France |
+| `berlin` | `Europe/Berlin` | Germany |
+| `moscow` | `Europe/Moscow` | Russia |
+| `est`, `eastern` | `America/New_York` | US Eastern |
+| `cst`, `central` | `America/Chicago` | US Central |
+| `mst`, `mountain` | `America/Denver` | US Mountain |
+| `pst`, `pacific` | `America/Los_Angeles` | US Pacific |
+| `sydney` | `Australia/Sydney` | Australia |
+| `melbourne` | `Australia/Melbourne` | Australia |
 
 ## Outputs
 

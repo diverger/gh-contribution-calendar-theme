@@ -11,6 +11,10 @@ inputs:
     description: 'GitHub username to check for contribution calendar theme'
     required: false
     default: ${{ github.repository_owner }}
+  timezone:
+    description: 'Timezone for holiday detection. Supports IANA format (e.g., America/New_York, Asia/Shanghai) or simple aliases (e.g., china, tokyo, london, est, pst). See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for all valid values. Defaults to UTC.'
+    required: false
+    default: 'UTC'
 
 outputs:
   holiday_detected:
@@ -33,3 +37,4 @@ runs:
   image: 'docker://ghcr.io/diverger/gh-contribution-calendar-theme@sha256:2e059eed2731b3c72e95227884d23a0526b2c370d67798d3a5835ce818696148'
   env:
     GITHUB_USERNAME: ${{ inputs.github-username }}
+    TIMEZONE: ${{ inputs.timezone }}

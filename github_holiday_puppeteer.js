@@ -2,8 +2,64 @@
 
 const puppeteer = require('puppeteer-core');
 
-async function detectGitHubHoliday(username) {
+// Common timezone mappings for user-friendly input
+const TIMEZONE_ALIASES = {
+  // China
+  'china': 'Asia/Shanghai',
+  'beijing': 'Asia/Shanghai',
+  'shanghai': 'Asia/Shanghai',
+  // US
+  'est': 'America/New_York',
+  'eastern': 'America/New_York',
+  'cst': 'America/Chicago',
+  'central': 'America/Chicago',
+  'mst': 'America/Denver',
+  'mountain': 'America/Denver',
+  'pst': 'America/Los_Angeles',
+  'pacific': 'America/Los_Angeles',
+  // Europe
+  'london': 'Europe/London',
+  'paris': 'Europe/Paris',
+  'berlin': 'Europe/Berlin',
+  'moscow': 'Europe/Moscow',
+  // Asia
+  'tokyo': 'Asia/Tokyo',
+  'seoul': 'Asia/Seoul',
+  'hongkong': 'Asia/Hong_Kong',
+  'singapore': 'Asia/Singapore',
+  'dubai': 'Asia/Dubai',
+  // Australia
+  'sydney': 'Australia/Sydney',
+  'melbourne': 'Australia/Melbourne',
+};
+
+// Normalize and validate timezone
+function normalizeTimezone(input) {
+  if (!input) return 'UTC';
+
+  const normalized = input.trim();
+
+  // Check if already in correct format (contains '/')
+  if (normalized.includes('/')) {
+    return normalized;
+  }
+
+  // Try to find alias (case-insensitive)
+  const lower = normalized.toLowerCase();
+  if (TIMEZONE_ALIASES[lower]) {
+    console.log(`Timezone alias "${input}" resolved to "${TIMEZONE_ALIASES[lower]}"`);
+    return TIMEZONE_ALIASES[lower];
+  }
+
+  // Return as-is and let Puppeteer validate
+  return normalized;
+}
+
+async function detectGitHubHoliday(username, timezone = 'UTC') {
+  const normalizedTimezone = normalizeTimezone(timezone);
+
   console.log(`Detecting holiday theme for GitHub user: ${username}`);
+  console.log(`Timezone: ${normalizedTimezone}${timezone !== normalizedTimezone ? ` (from: ${timezone})` : ''}`);
   console.log(`Timestamp: ${new Date().toISOString()}`);
 
   let browser;
@@ -38,6 +94,17 @@ async function detectGitHubHoliday(username) {
     });
 
     const page = await browser.newPage();
+
+    // Set timezone for the page to match user's local time
+    try {
+      await page.emulateTimezone(normalizedTimezone);
+    } catch (error) {
+      console.error(`Invalid timezone "${normalizedTimezone}": ${error.message}`);
+      console.error('Please use a valid IANA timezone (e.g., America/New_York, Asia/Shanghai, Europe/London)');
+      console.error('Or use a simple alias like: china, tokyo, london, est, pst, etc.');
+      console.error('See https://en.wikipedia.org/wiki/List_of_tz_database_time_zones for all valid values');
+      throw error;
+    }
 
     // Set minimal viewport and user agent
     await page.setViewport({ width: 1280, height: 720 });
@@ -218,7 +285,8 @@ function createResult(theme, method, lightGridColors = null, darkGridColors = nu
 }// Main function
 async function main() {
   const username = process.env.GITHUB_USERNAME || process.argv[2] || 'octocat';
-  const result = await detectGitHubHoliday(username);
+  const timezone = process.env.TIMEZONE || process.argv[3] || 'UTC';
+  const result = await detectGitHubHoliday(username, timezone);
 
   // Output in GitHub Actions format
   const githubOutput = process.env.GITHUB_OUTPUT;
