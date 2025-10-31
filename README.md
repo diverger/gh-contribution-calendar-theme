@@ -110,5 +110,3 @@ jobs:
 | `dark_color_palette` | Comma-separated dark theme colors | `#161b22, #0e4429, #006d32, #26a641, #39d353` |
 | `light_grid_colors` | JSON array with level/color pairs for light theme | `[{"level":0,"color":"#ebedf0"}]` |
 | `dark_grid_colors` | JSON array with level/color pairs for dark theme | `[{"level":0,"color":"#161b22"}]` |
-|-------|-------------|----------|---------|
-| `github-username` | GitHub username to check for contribution calendar theme | No | Repository owner |
