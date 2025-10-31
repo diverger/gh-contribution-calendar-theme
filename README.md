@@ -44,6 +44,21 @@ jobs:
           echo "Dark colors: ${{ steps.theme.outputs.dark_color_palette }}"
 ```
 
+### Version References
+
+You can reference this action using different version levels:
+
+```yaml
+# Major version (recommended - gets latest v1.x.x)
+uses: YOUR-USERNAME/gh-contribution-calendar-theme@v1
+
+# Minor version (gets latest v1.0.x)
+uses: YOUR-USERNAME/gh-contribution-calendar-theme@v1.0
+
+# Specific patch version (pinned to exact release)
+uses: YOUR-USERNAME/gh-contribution-calendar-theme@v1.0.0
+```
+
 ### Use Theme Colors in Your Project
 
 ```yaml
@@ -98,3 +113,5 @@ jobs:
 | `dark_color_palette` | Comma-separated dark theme colors | `#161b22, #0e4429, #006d32, #26a641, #39d353` |
 | `light_grid_colors` | JSON array with level/color pairs for light theme | `[{"level":0,"color":"#ebedf0"}]` |
 | `dark_grid_colors` | JSON array with level/color pairs for dark theme | `[{"level":0,"color":"#161b22"}]` |
+|-------|-------------|----------|---------|
+| `github-username` | GitHub username to check for contribution calendar theme | No | Repository owner |
