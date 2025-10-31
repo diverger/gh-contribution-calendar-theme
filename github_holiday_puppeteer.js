@@ -10,6 +10,7 @@ async function detectGitHubHoliday(username) {
   try {
     // Launch the browser with optimized settings
     browser = await puppeteer.launch({
+      executablePath: process.env.PUPPETEER_EXECUTABLE_PATH || '/usr/bin/chromium-browser',
       headless: true,
       args: [
         '--no-sandbox',
