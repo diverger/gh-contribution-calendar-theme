@@ -2,16 +2,23 @@
 
 A GitHub Action that detects the current GitHub contribution calendar theme and extracts the color palettes for both light and dark modes.
 
-GitHub changes the contribution calendar colors during special holidays (Halloween 馃巸, Christmas 馃巹, Lunar New Year 馃Ё, Valentine's Day 馃挐, etc.). This action helps you detect which theme is active and get the exact color values.
+GitHub changes the contribution calendar colors during special holidays — examples:
+
+- Halloween 🎃 (:jack_o_lantern:)
+- Christmas 🎄 (:christmas_tree:)
+- Lunar New Year 🧧 (:red_envelope:)
+- Valentine's Day 💝 (:gift_heart:)
+
+This action helps you detect which theme is active and get the exact color values.
 
 ## Features
 
-- 馃帹 Extracts actual color values from GitHub's contribution calendar
-- 馃寭 Supports both light and dark theme colors
-- 馃巸 Detects holiday themes (Halloween, Christmas, Lunar New Year, Valentine's, Pride)
-- 鈿� Fast execution using Bun runtime
-- 锟� **Docker-based** - Pre-built image for instant execution (no setup time!)
-- 锟金煋� Returns colors as both arrays and simple palettes
+- 🎨 Extracts actual color values from GitHub's contribution calendar
+- 🌓 Supports both light and dark theme colors
+- 🎃 Detects holiday themes (Halloween, Christmas, Lunar New Year, Valentine's, Pride)
+- ⚡ Fast execution using Bun runtime
+- 🐳 **Docker-based** - Pre-built image for instant execution (no setup time!)
+- 📊 Returns colors as both arrays and simple palettes
 
 ## Usage
 
