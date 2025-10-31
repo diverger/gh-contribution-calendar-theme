@@ -1,33 +1,30 @@
-# Use Bun's official image
+# Use Bun's official Alpine image (smallest base)
 FROM oven/bun:1-alpine
 
-# Install Chromium and dependencies for Puppeteer
+# Install Chromium and minimal dependencies
 RUN apk add --no-cache \
     chromium \
     nss \
     freetype \
     harfbuzz \
     ca-certificates \
-    ttf-freefont
+    && rm -rf /var/cache/apk/*
 
-# Set Puppeteer to use the installed Chromium
+# Set Puppeteer to use system Chromium
 ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true \
     PUPPETEER_EXECUTABLE_PATH=/usr/bin/chromium-browser
 
-# Set working directory
 WORKDIR /action
 
-# Copy package files
+# Copy only package files first (better layer caching)
 COPY package.json ./
 
-# Install dependencies
-RUN bun install --production
+# Install production dependencies only
+RUN bun install --production --no-save \
+    && rm -rf /root/.bun/install/cache
 
-# Copy the script
-COPY github_holiday_puppeteer.js ./
+# Copy application files
+COPY github_holiday_puppeteer.js entrypoint.sh ./
+RUN chmod +x entrypoint.sh
 
-# Copy entrypoint
-COPY entrypoint.sh /entrypoint.sh
-RUN chmod +x /entrypoint.sh
-
-ENTRYPOINT ["/entrypoint.sh"]
+ENTRYPOINT ["/action/entrypoint.sh"]

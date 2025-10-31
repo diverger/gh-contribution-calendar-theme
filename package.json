@@ -15,6 +15,6 @@
   ],
   "author": "",
   "dependencies": {
-    "puppeteer": "^22.0.0"
+    "puppeteer-core": "^22.0.0"
   }
 }
