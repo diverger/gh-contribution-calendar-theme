@@ -255,7 +255,7 @@ function createResult(theme, method, lightGridColors = null, darkGridColors = nu
   return result;
 }// Main function
 async function main() {
-  const username = process.env.GITHUB_USERNAME || process.argv[2] || 'diverger';
+  const username = process.env.GITHUB_USERNAME || process.argv[2] || 'octocat';
   const result = await detectGitHubHoliday(username);
 
   // Output in GitHub Actions format
