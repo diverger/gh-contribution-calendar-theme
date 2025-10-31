@@ -44,8 +44,6 @@ jobs:
             VERSION="v$INPUT_VERSION"
           fi
 
-          echo "Input version: $INPUT_VERSION"
-          echo "Final version: $VERSION"
           echo "version=$VERSION" >> $GITHUB_OUTPUT
           echo "version_number=${VERSION#v}" >> $GITHUB_OUTPUT
 
@@ -83,13 +81,9 @@ jobs:
       - name: Get image digest
         id: digest
         run: |
-          # Extract the sha256 digest from the build output
           DIGEST="${{ steps.build.outputs.digest }}"
-          echo "value=$DIGEST" >> $GITHUB_OUTPUT
-          echo "=== Image Digest Extracted ==="
-          echo "Digest: $DIGEST"
+          echo "digest=$DIGEST" >> $GITHUB_OUTPUT
 
-          # Verify it was saved
           if [ -z "$DIGEST" ]; then
             echo "ERROR: Digest is empty!"
             exit 1
@@ -97,91 +91,41 @@ jobs:
 
       - name: Update action.yml with image digest
         run: |
-          DIGEST="${{ steps.digest.value }}"
+          DIGEST="${{ steps.digest.outputs.digest }}"
           IMAGE_NAME="${{ steps.repo.outputs.name }}"
           IMAGE_REF="docker://docker.io/${IMAGE_NAME}@${DIGEST}"
 
-          echo "=== Before Update ==="
-          cat action.yml | grep -A 2 "image:"
-
-          echo ""
-          echo "=== Updating with: ${IMAGE_REF} ==="
-
-          # Update the image line in action.yml (match any amount of leading whitespace)
           sed -i "s|^[[:space:]]*image:.*|  image: '${IMAGE_REF}'|" action.yml
-
-          echo ""
-          echo "=== After Update ==="
-          cat action.yml | grep -A 2 "image:"
 
       - name: Commit updated action.yml and update all version tags
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
 
-          echo "=== Git Status Before Add ==="
-          git status
-
           git add action.yml
 
-          echo ""
-          echo "=== Git Diff Staged ==="
-          git diff --staged
-
-          # Check if there are changes to commit
           if ! git diff --quiet --cached; then
-            echo ""
-            echo "=== Changes detected, committing... ==="
             git commit -m "chore: update action.yml with image digest for ${{ steps.version.outputs.version }}"
 
             VERSION=${{ steps.version.outputs.version }}
 
-            echo ""
-            echo "=== Version Processing ==="
-            echo "VERSION=$VERSION"
-
-            # Update the patch version tag to point to the new commit
-            git tag -fa $VERSION -m "Release $VERSION with updated action.yml"
+            # Update the patch version tag
+            git tag -fa $VERSION -m "Release $VERSION"
             git push origin $VERSION --force
 
-            echo "Updated and pushed tag $VERSION with new action.yml"
-
-            # Only update major/minor tags for full semver (v1.0.0 format)
-            echo ""
-            echo "=== Checking version format ==="
+            # Update major/minor tags for semver (v1.0.0 format)
             if [[ "$VERSION" =~ ^v[0-9]+\.[0-9]+\.[0-9]+$ ]]; then
-              echo "✓ Version matches semver pattern: $VERSION"
               MAJOR_VERSION=$(echo $VERSION | cut -d. -f1)
               MINOR_VERSION=$(echo $VERSION | cut -d. -f1-2)
 
-              echo "MAJOR_VERSION=$MAJOR_VERSION"
-              echo "MINOR_VERSION=$MINOR_VERSION"
-
-              # Update major version tag (e.g., v1 for v1.0.0)
-              echo ""
-              echo "Creating/updating major tag: $MAJOR_VERSION"
               git tag -fa $MAJOR_VERSION -m "Update $MAJOR_VERSION tag to $VERSION"
               git push origin $MAJOR_VERSION --force
-              echo "✓ Updated tag: $MAJOR_VERSION -> $VERSION"
 
-              # Update minor version tag (e.g., v1.0 for v1.0.0)
-              echo ""
-              echo "Creating/updating minor tag: $MINOR_VERSION"
               git tag -fa $MINOR_VERSION -m "Update $MINOR_VERSION tag to $VERSION"
               git push origin $MINOR_VERSION --force
-              echo "✓ Updated tag: $MINOR_VERSION -> $VERSION"
-
-              echo ""
-              echo "=== All tags created successfully ==="
-              git tag -l "v*" | sort -V
-            else
-              echo "✗ Version does not match semver pattern (v1.0.0): $VERSION"
-              echo "Skipping major/minor tag update"
             fi
           else
-            echo ""
-            echo "=== ERROR: No changes to action.yml detected! ==="
-            echo "This means the sed command didn't work!"
+            echo "ERROR: No changes to action.yml detected!"
             exit 1
           fi
 
