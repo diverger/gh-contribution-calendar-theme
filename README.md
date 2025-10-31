@@ -2,7 +2,7 @@
 
 A GitHub Action that detects the current GitHub contribution calendar theme and extracts the color palettes for both light and dark modes.
 
-GitHub changes the contribution calendar colors during special holidays (Halloween 🎃, Christmas 🎄, Lunar New Year 🧧, Valentine's Day 💝, Pride Month 🏳️‍🌈, etc.). This action helps you detect which theme is active and get the exact color values.
+GitHub changes the contribution calendar colors during special holidays (Halloween 🎃, Christmas 🎄, Lunar New Year 🧧, Valentine's Day 💝, etc.). This action helps you detect which theme is active and get the exact color values.
 
 ## Features
 
