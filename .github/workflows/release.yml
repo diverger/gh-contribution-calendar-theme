@@ -93,10 +93,10 @@ jobs:
           IMAGE_REF="docker://docker.io/${IMAGE_NAME}@${DIGEST}"
 
           echo "Updating action.yml with image: ${IMAGE_REF}"
-          
+
           # Update the image line in action.yml (more precise pattern)
           sed -i "/^  image:/c\  image: '${IMAGE_REF}'" action.yml
-          
+
           echo "Updated action.yml:"
           cat action.yml
 
