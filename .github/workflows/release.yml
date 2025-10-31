@@ -27,6 +27,9 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
@@ -100,52 +103,67 @@ jobs:
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           git add action.yml
-          git diff --quiet && git diff --staged --quiet || git commit -m "chore: update action.yml with image digest for ${{ steps.version.outputs.version }}"
-          git push origin HEAD:refs/heads/release-${{ steps.version.outputs.version }}
 
-      - name: Create Release
+          # Check if there are changes to commit
+          if ! git diff --quiet --cached; then
+            git commit -m "chore: update action.yml with image digest for ${{ steps.version.outputs.version }}"
+
+            # Update the tag to point to the new commit
+            git tag -fa ${{ steps.version.outputs.version }} -m "Release ${{ steps.version.outputs.version }} with updated action.yml"
+            git push origin ${{ steps.version.outputs.version }} --force
+
+            echo "Updated and pushed tag ${{ steps.version.outputs.version }} with new action.yml"
+          else
+            echo "No changes to action.yml"
+          fi
+
+      - name: Generate release notes
         if: github.event_name == 'push' || inputs.create_release == true
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        id: release_notes
+        run: |
+          cat > release_notes.md << 'EOF'
+          ## 🎨 GitHub Contribution Calendar Theme Detector
+
+          ### Docker Image
+
+          ```
+          docker.io/${{ steps.repo.outputs.name }}@${{ steps.digest.value }}
+          ```
+
+          ### What's Changed
+
+          - Docker image published to Docker Hub
+          - Image digest: `${{ steps.digest.value }}`
+          - Image tags:
+            - `docker.io/${{ steps.repo.outputs.name }}:${{ steps.version.outputs.version_number }}`
+            - `docker.io/${{ steps.repo.outputs.name }}:latest`
+
+          ### Usage
+
+          ```yaml
+          - uses: ${{ github.repository }}@${{ steps.version.outputs.version }}
+            with:
+              github-username: octocat
+          ```
+
+          **Available Version Tags:**
+          - `v${{ steps.version.outputs.version_number }}` (patch version - specific release)
+          - `v1.0` (minor version - latest patch in minor)
+          - `v1` (major version - latest release in major)
+          EOF
+
+      - name: Create Release with Auto-generated Notes
+        if: github.event_name == 'push' || inputs.create_release == true
+        uses: ncipollo/release-action@v1
         with:
-          tag_name: ${{ steps.version.outputs.version }}
-          release_name: Release ${{ steps.version.outputs.version }}
-          body: |
-            ## 🎨 GitHub Contribution Calendar Theme Detector ${{ steps.version.outputs.version }}
-
-            ### Docker Image
-
-            ```
-            docker.io/${{ steps.repo.outputs.name }}@${{ steps.digest.value }}
-            ```
-
-            ### What's Changed
-
-            - Docker image published to Docker Hub
-            - Image digest: `${{ steps.digest.value }}`
-            - Image tags:
-              - `docker.io/${{ steps.repo.outputs.name }}:${{ steps.version.outputs.version_number }}`
-              - `docker.io/${{ steps.repo.outputs.name }}:latest`
-
-            ### Usage
-
-            ```yaml
-            - uses: ${{ github.repository }}@${{ steps.version.outputs.version }}
-              with:
-                github-username: octocat
-            ```
-
-            **Available Version Tags:**
-            - `v1.0.0` (patch version - specific release)
-            - `v1.0` (minor version - latest patch in minor)
-            - `v1` (major version - latest release in major)
-
-            ### Full Changelog
-
-            See commits since last release.
+          tag: ${{ steps.version.outputs.version }}
+          name: Release ${{ steps.version.outputs.version }}
+          bodyFile: release_notes.md
+          generateReleaseNotes: true
           draft: false
           prerelease: false
+          allowUpdates: true
+          token: ${{ secrets.GITHUB_TOKEN }}
 
       - name: Update version tags
         if: github.event_name == 'push'
